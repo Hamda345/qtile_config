@@ -112,8 +112,8 @@ keys = [
 #+end_src
 * Workspaces:
 - Workspaces are named as groups in qtile
-- group_names list represents number keys for AZERTY keyboard layouts, you can repplace them with numbers from 1 to 8 if you have different keyboard layout like QWERTY
-- Group names (workspaces) will be labaled with icons instead of numbers using group_labels list
+- group_names list represents number keys for AZERTY keyboard layouts, you can repplace them with numbers from 1 to 8 if you have different keyboard layout such as QWERTY
+- Group names (workspaces) will be labeled with icons instead of numbers using group_labels list
 #+begin_src python
 group_names = ["ampersand", "eacute", "quotedbl", "apostrophe", "parenleft", "section", "egrave", "exclam"]
 
@@ -183,7 +183,7 @@ layouts = [
 #+end_src
 
 * Bar and Widgets:
-Setting up Top bar and widgets inside inside the BAR
+Setting up Top bar and widgets inside the BAR
 #+begin_src python
 widget_defaults = dict(
     font="JetBrains Mono",
