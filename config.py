@@ -1,7 +1,9 @@
 import os
+import time
 import psutil
 import subprocess
-from libqtile import backend, bar, layout, widget, hook, extension
+from threading import Timer
+from libqtile import backend, bar, layout, widget, hook, extension, qtile
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 
@@ -15,7 +17,7 @@ keys = [
     Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
     Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
     Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
-    Key([mod], "space", lazy.next_layout(), desc="Toggle Between Layouts"),
+    Key([mod], "space", lazy.next_layout(), desc="Move window focus to other window"),
     # Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
     # Move windows between left/right columns or move up/down in current stack.
     # Moving out of range in Columns layout will create new column.
@@ -41,14 +43,17 @@ keys = [
         desc="Toggle between split and unsplit sides of stack",
     ),
 
-    Key([mod], "s", lazy.spawn("i3lock -i /home/hamda/Pictures/Wallpapers/dotfiles1/wallhaven-ox18l9.png"), desc="Lock Screen"),
+    Key([mod], "s", lazy.spawn("i3lock -i /home/hamda/Pictures/Wallpapers/dotfiles1/wall-01.png"), desc="Lock Screen"),
+    Key([mod], "f", lazy.spawn("thunar"), desc="Lock Screen"),
     Key([mod], "d", lazy.spawn("/home/hamda/.config/emacs/bin/doom run"), desc="Run Emacs"),
 
     Key([mod], "Return", lazy.spawn("/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=wezterm org.wezfurlong.wezterm start --cwd ."), desc="Launch terminal"),
-  #  Key([mod], "Return", lazy.spawn("kitty")),
+    # Key([mod], "a", lazy.spawn("cool-retro-term"), desc="Launch terminal"),
+    Key([mod], "a", lazy.spawn("kitty"), desc="Launch terminal"),
+    #  Key([mod], "Return", lazy.spawn("kitty")),
     Key([mod], "n", lazy.spawn("rofi-wifi-menu"), desc="show available wifi networks"),
     # Toggle between different layouts as defined below
-    Key([mod], "Tab", lazy.layout.next(), desc="Move Focus To other Window"),
+    Key([mod], "Tab", lazy.layout.next(), desc="Toggle between layouts"),
     # Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
@@ -58,7 +63,7 @@ keys = [
     Key([], "XF86AudioLowerVolume", lazy.spawn("pactl set-sink-volume @DEFAULT_SINK@ -5%"), desc="Increase Audio Volume"),
     Key([], "XF86AudioRaiseVolume", lazy.spawn("pactl set-sink-volume @DEFAULT_SINK@ +5%"), desc="Descrease Audio Volume"),
     Key([], "XF86AudioMute", lazy.spawn("pactl set-sink-mute @DEFAULT_SINK@ toggle"), desc="Mute Audio Volume"),
-     Key(['mod4'], 'p', lazy.run_extension(extension.DmenuRun(
+    Key(['mod4'], 'p', lazy.run_extension(extension.DmenuRun(
         dmenu_prompt=">",
         dmenu_font="JetBrains Mono",
         background="#000000",
@@ -110,8 +115,10 @@ for i in groups:
 def init_layout_theme():
     return {"margin":5,
             "border_width":2,
-            "border_focus": "#5e81ac",
-            "border_normal": "#4c566a"
+            "border_focus": "#364995",
+            "border_normal": "#4c566a",
+            "border_on_single": True
+
             }
 layout_theme = init_layout_theme()
 
@@ -148,50 +155,50 @@ screens = [
                 widget.WindowName(),
                 widget.Chord(
                     chords_colors={
-                        "launch": ("#000000", "#eeeeee"),
+                        "launch": ("#030315", "#cdc7d3"),
                     },
                     name_transform=lambda name: name.upper(),
                 ),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
                 # widget.StatusNotifier(),
-                widget.TextBox(" "),
+                widget.Sep(),
                 widget.Wallpaper(directory="~/Pictures/Wallpapers/dotfiles1/", label="🖼️"),
-                widget.TextBox(" "),
+                widget.Sep(),
                 widget.Image(filename="~/.config/qtile/ram.png"),
                 widget.Memory(measure_mem="G"),
- #               widget.TextBox("🔋"),
-                widget.TextBox(" "),
+                #               widget.TextBox("🔋"),
+                widget.Sep(),
                 widget.Image(filename="~/.config/qtile/battery.png"),
                 widget.Battery(format="{percent:2.0%}"),
-                widget.TextBox(" "),
- #               widget.TextBox("🔊"),
+                widget.Sep(),
+                #               widget.TextBox("🔊"),
                 widget.Image(filename="~/.config/qtile/sound.png"),
                 widget.Volume(),
                 # widget.Bluetooth(),
                 # widget.Backlight(brightness_file="/sys/class/backlight/amdgpu_bl0/max_brightness"),
-                widget.TextBox(" "),
+                widget.Sep(),
                 widget.TextBox("🌡"),
                 widget.ThermalZone(),
-               # widget.NvidiaSensors(),
+                # widget.NvidiaSensors(),
                 #widget.TextBox(" "),
                 #widget.TextBox(" "),
                 #widget.Net(interface="wlo1"),
-                widget.TextBox(" "),
+                widget.Sep(),
                 widget.TextBox(" "),
                 widget.Clock(format="%Y-%m-%d %H:%M", background="#553B88"),
-                widget.TextBox(" "),
+                widget.Sep(),
                 widget.Notify(),
                 widget.TextBox(" "),
                 widget.CheckUpdates(distro='Fedora'),
                 widget.Systray(),
                 widget.CurrentLayoutIcon(),
-                ],
+            ],
             35,
-             # border_width=[1, 1, 1, 1],  # Draw top and bottom borders
-             # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
-             background="#07001d",
-             opacity=0.7,
-             border_width=[1, 1, 6, 1]
+            # border_width=[1, 1, 1, 1],  # Draw top and bottom borders
+            # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
+            background="#07001d",
+            opacity=0.8,
+            border_width=[1, 1, 1, 1]
         ),
     ),
 ]
@@ -241,9 +248,40 @@ wl_input_rules = None
 # java that happens to be on java's whitelist.
 wmname = "qtile"
 
+activity_timer = None
+is_active = True
+
+def lock_screen():
+    qtile.cmd_spawn("i3lock -i /home/hamda/Pictures/Wallpapers/dotfiles1/wall-01.png")
+
+def reset_timer():
+    global activity_timer, is_active
+    if activity_timer is not None:
+        activity_timer.cancel()
+    activity_timer = Timer(5, lock_screen)
+    activity_timer.start()
+    is_active = True
+
 
 
 @hook.subscribe.startup_once
 def autostart():
+    reset_timer()
     home = os.path.expanduser('~/.config/qtile/autostart.sh')
     subprocess.Popen([home])
+
+@hook.subscribe.screen_change
+def resetart_timer(qtile, ev):
+    reset_timer()
+
+@hook.subscribe.client_killed
+def check_activity(qtile, win):
+    global is_active
+    if len(qtile.Windows) == 1 and not is_active:
+        reset_timer()
+
+@hook.subscribe.focus_change
+def update_activity(qtile, win):
+    global is_active
+    is_active = False
+
